@@ -248,7 +248,7 @@ export default function FacultyDashboard() {
         <img src={Logo} alt="Institute Logo" className="header-logo" style={{ maxHeight: '50px' }} />
         <nav className="header-nav" style={{ display: 'flex', gap: '50px' }}>
           <a href="/" style={{ color: 'white', textDecoration: 'none', fontSize: '18px' }}>Dashboard</a>
-          <a href="/attendance" style={{ color: 'white', textDecoration: 'none', fontSize: '18px' }}>Attendance list</a>
+          <a href="/attendance" style={{ color: 'white', textDecoration: 'none', fontSize: '18px' }}>Attendance Report</a>
         </nav>
       </header>
 
@@ -466,4 +466,5 @@ export default function FacultyDashboard() {
       </div>
   )
 }
+
 
