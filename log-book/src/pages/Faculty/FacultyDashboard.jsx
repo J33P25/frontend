@@ -90,7 +90,7 @@ const timetableData = {
 
 }
 
-export default function ClassStatus() {
+export default function FacultyDashboard() {
   const [selectedPeriod, setSelectedPeriod] = useState(null)
 
   const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
@@ -466,3 +466,4 @@ export default function ClassStatus() {
       </div>
   )
 }
+
