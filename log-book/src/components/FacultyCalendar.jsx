@@ -20,47 +20,70 @@ const FacultyCalendar = () => {
 
   return (
     <div style={{ 
-      padding: '1.5rem 2rem 2rem 2rem',
-      height: 'calc(90vh - 5rem)',
-      overflow: 'auto'
+      padding: 'clamp(0.75rem, 3vw, 2rem)',
+      height: '100vh',
+      overflow: 'auto',
+      boxSizing: 'border-box'
     }}>
       <style>
         {`
+          * {
+            box-sizing: border-box;
+          }
+
+          .fc {
+            font-size: clamp(0.75rem, 2vw, 1rem);
+          }
+
           .fc-daygrid-day-top {
-            font-size: 1.2rem;
+            font-size: clamp(0.9rem, 2.5vw, 1.2rem);
             font-weight: 600;
-            padding: 0.5rem;
+            padding: clamp(0.25rem, 1vw, 0.5rem);
           }
 
           .fc-toolbar-title {
-            font-size: 1.75rem !important;
+            font-size: clamp(1rem, 4vw, 1.75rem) !important;
             font-weight: 600;
           }
 
+          .fc-toolbar {
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem !important;
+          }
+
+          .fc-toolbar-chunk {
+            display: flex;
+            gap: 0.25rem;
+          }
+
           .fc-button {
-            padding: 0.5rem 1rem !important;
-            font-size: 1rem !important;
+            padding: clamp(0.25rem, 1.5vw, 0.5rem) clamp(0.5rem, 2vw, 1rem) !important;
+            font-size: clamp(0.7rem, 2vw, 1rem) !important;
+            min-height: 36px;
+            touch-action: manipulation;
           }
 
           .fc-daygrid-day {
-            padding: 0.25rem;
+            padding: 0.125rem;
             position: relative;
           }
 
           .fc-daygrid-day-frame {
-            min-height: 100px;
+            min-height: clamp(60px, 12vh, 120px);
             position: relative;
           }
 
           .fc .fc-daygrid-day-number {
-            font-size: 1.1rem;
+            font-size: clamp(0.75rem, 2vw, 1.1rem);
             position: relative;
             z-index: 2;
+            padding: clamp(0.2rem, 1vw, 0.4rem);
           }
 
           .fc-col-header-cell {
-            padding: 0.75rem 0.5rem;
-            font-size: 1.1rem;
+            padding: clamp(0.375rem, 1.5vw, 0.75rem) clamp(0.125rem, 1vw, 0.5rem);
+            font-size: clamp(0.7rem, 2vw, 1.1rem);
             font-weight: 600;
           }
 
@@ -88,7 +111,7 @@ const FacultyCalendar = () => {
           }
 
           .period-block:not(:last-child) {
-            border-right: 2px solid black;
+            border-right: 1px solid black;
           }
 
           .period-block.present {
@@ -105,79 +128,89 @@ const FacultyCalendar = () => {
 
           .period-time {
             color: black;
-            font-size: 0.75rem;
+            font-size: clamp(0.55rem, 1.5vw, 0.75rem);
             font-weight: 500;
             margin-top: auto;
-            padding: 0.25rem;
+            padding: clamp(0.15rem, 0.5vw, 0.25rem);
+            text-align: center;
+            line-height: 1.2;
           }
 
           .fc-daygrid-day.has-attendance .fc-daygrid-day-number {
             color: white !important;
             font-weight: 600;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
           }
 
+          /* Mobile optimizations */
           @media (max-width: 768px) {
-            .fc-toolbar-title {
-              font-size: 1.25rem !important;
+            .fc-toolbar {
+              justify-content: center;
             }
 
-            .fc-button {
-              padding: 0.375rem 0.75rem !important;
-              font-size: 0.875rem !important;
+            .fc-toolbar-chunk {
+              justify-content: center;
             }
 
-            .fc-daygrid-day-frame {
-              min-height: 80px;
+            .fc-header-toolbar {
+              margin-bottom: 0.75rem !important;
             }
 
-            .fc .fc-daygrid-day-number {
-              font-size: 0.9rem;
-              padding: 0.375rem;
-            }
-
-            .fc-col-header-cell {
-              padding: 0.5rem 0.25rem;
-              font-size: 0.9rem;
-            }
-
-            .fc-daygrid-day-top {
-              font-size: 1rem;
-              padding: 0.375rem;
-            }
-
-            .period-time {
-              font-size: 0.65rem;
-              padding: 0.2rem;
+            .fc-col-header-cell-cushion {
+              padding: 0.25rem !important;
             }
           }
 
+          /* Extra small screens */
           @media (max-width: 480px) {
-            .fc-toolbar-title {
-              font-size: 1rem !important;
+            .fc-toolbar {
+              margin-bottom: 0.5rem !important;
             }
 
-            .fc-button {
-              padding: 0.25rem 0.5rem !important;
-              font-size: 0.75rem !important;
+            .fc-button-group {
+              display: flex;
             }
 
             .fc-daygrid-day-frame {
-              min-height: 60px;
+              min-height: 50px;
             }
 
-            .fc .fc-daygrid-day-number {
-              font-size: 0.8rem;
-              padding: 0.25rem;
+            /* Hide "AM/PM" on very small screens to save space */
+            .period-time {
+              font-size: 0.5rem;
             }
 
-            .fc-col-header-cell {
-              padding: 0.375rem 0.125rem;
-              font-size: 0.75rem;
+            /* Stack toolbar on very small screens */
+            .fc-toolbar {
+              flex-direction: column;
+            }
+
+            .fc-toolbar-chunk:nth-child(2) {
+              order: -1;
+              margin-bottom: 0.5rem;
+            }
+          }
+
+          /* Landscape mobile */
+          @media (max-width: 896px) and (orientation: landscape) {
+            .fc-daygrid-day-frame {
+              min-height: 70px;
             }
 
             .period-time {
               font-size: 0.6rem;
-              padding: 0.15rem;
+            }
+          }
+
+          /* Touch-friendly improvements */
+          @media (hover: none) and (pointer: coarse) {
+            .fc-button {
+              min-height: 44px;
+              min-width: 44px;
+            }
+
+            .fc-daygrid-day {
+              cursor: pointer;
             }
           }
         `}
@@ -185,9 +218,16 @@ const FacultyCalendar = () => {
       <FullCalendar
         plugins={[dayGridPlugin]}
         initialView="dayGridMonth"
-        height="100%"
+        height="auto"
+        contentHeight="auto"
+        aspectRatio={1.5}
         events={events}
         displayEventTime={false}
+        headerToolbar={{
+          left: 'prev,next',
+          center: 'title',
+          right: 'today'
+        }}
         dayCellClassNames={(arg) => {
           const dateStr = arg.date.toISOString().split('T')[0]
           const record = attendanceRecords.find(r => r.date === dateStr)
