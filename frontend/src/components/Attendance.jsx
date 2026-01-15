@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '..';
+import { useAuth } from '../pages/Login/AuthContext';
 import './Attendance.css';
 
 export default function Attendance() {

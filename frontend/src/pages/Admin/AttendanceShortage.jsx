@@ -1,127 +1,436 @@
-import { useState } from "react";
+// import { useState, useEffect } from "react";
+// import api from "../utils/api";
+
+// const AttendanceShortage = () => {
+//   // --- 1. Filter States ---
+//   const [depts, setDepts] = useState([]);
+//   const [batches, setBatches] = useState([]);
+//   const [sections, setSections] = useState([]);
+//   const [courses, setCourses] = useState([]);
+
+//   // --- 2. Selection States ---
+//   const [selectedDept, setSelectedDept] = useState("");
+//   const [selectedBatch, setSelectedBatch] = useState("");
+//   const [selectedSection, setSelectedSection] = useState("");
+//   const [selectedSubject, setSelectedSubject] = useState("ALL");
+//   const [threshold, setThreshold] = useState(75); // Default 75% cutoff
+
+//   // --- 3. Data States ---
+//   const [shortageList, setShortageList] = useState([]);
+//   const [loading, setLoading] = useState(false);
+
+//   // --- 4. Initial Fetches ---
+//   useEffect(() => {
+//     const loadBasics = async () => {
+//         try {
+//             const d = await api.get("/admin/depts");
+//             setDepts(d.data);
+//             const c = await api.get("/admin/courses");
+//             setCourses(c.data);
+//         } catch (e) { console.error(e); }
+//     };
+//     loadBasics();
+//   }, []);
+
+//   // --- 5. Cascading Dropdowns ---
+//   useEffect(() => {
+//     if (selectedDept) {
+//       api.get("/admin/batches").then(res => {
+//         setBatches(res.data.filter(b => b.dept_id === parseInt(selectedDept)));
+//       });
+//     } else setBatches([]);
+//   }, [selectedDept]);
+
+//   useEffect(() => {
+//     if (selectedBatch) {
+//       api.get("/admin/sections").then(res => {
+//         setSections(res.data.filter(s => s.batch_id === parseInt(selectedBatch)));
+//       });
+//     } else setSections([]);
+//   }, [selectedBatch]);
+
+//   // --- 6. Main Fetch Logic ---
+//   const fetchShortageList = async () => {
+//     if (!selectedSection) return alert("Please select a section");
+    
+//     setLoading(true);
+//     try {
+//       const res = await api.get("/admin/attendance-report", {
+//         params: {
+//             section_id: selectedSection,
+//             course_code: selectedSubject,
+//             threshold: threshold
+//         }
+//       });
+//       setShortageList(res.data);
+//     } catch (err) {
+//       console.error(err);
+//       alert("Failed to fetch shortage list");
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   return (
+//     <div>
+//       {/* FILTERS */}
+//       <div style={filterContainer}>
+//         <div style={{display:'flex', gap:'10px', flexWrap:'wrap', flex:1}}>
+//             <select style={selectStyle} onChange={e => setSelectedDept(e.target.value)} value={selectedDept}>
+//                 <option value="">Select Dept</option>
+//                 {depts.map(d => <option key={d.id} value={d.id}>{d.dept_code}</option>)}
+//             </select>
+
+//             <select style={selectStyle} onChange={e => setSelectedBatch(e.target.value)} value={selectedBatch} disabled={!selectedDept}>
+//                 <option value="">Select Batch</option>
+//                 {batches.map(b => <option key={b.id} value={b.id}>{b.batch_name}</option>)}
+//             </select>
+
+//             <select style={selectStyle} onChange={e => setSelectedSection(e.target.value)} value={selectedSection} disabled={!selectedBatch}>
+//                 <option value="">Select Section</option>
+//                 {sections.map(s => <option key={s.id} value={s.id}>{s.section_name}</option>)}
+//             </select>
+
+//             <select style={selectStyle} value={selectedSubject} onChange={(e) => setSelectedSubject(e.target.value)}>
+//                 <option value="ALL">All Subjects</option>
+//                 {courses.map((s) => (
+//                     <option key={s.course_code} value={s.course_code}>{s.course_name}</option>
+//                 ))}
+//             </select>
+
+//             <div style={{display:'flex', alignItems:'center', background:'white', border:'1px solid #ccc', borderRadius:'4px', padding:'0 5px'}}>
+//                 <label style={{fontSize:'12px', fontWeight:'bold', paddingLeft:'5px'}}>Threshold % &lt; </label>
+//                 <input 
+//                     type="number" 
+//                     value={threshold} 
+//                     onChange={e => setThreshold(e.target.value)} 
+//                     style={{...selectStyle, border:'none', width:'50px'}}
+//                 />
+//             </div>
+//         </div>
+
+//         <button onClick={fetchShortageList} style={btnStyle}>Check Shortage</button>
+//       </div>
+
+//       {/* SHORTAGE TABLE */}
+//       {loading ? <p style={{textAlign:'center', marginTop:'30px'}}>Calculating attendance...</p> : (
+//         <>
+//             <table style={tableStyle}>
+//                 <thead>
+//                 <tr>
+//                     <th style={thStyle}>Roll No</th>
+//                     <th style={thStyle}>Student Name</th>
+//                     <th style={thStyle}>Subject</th>
+//                     <th style={thStyle}>Attended / Total</th>
+//                     <th style={thStyle}>Percentage</th>
+//                     <th style={thStyle}>Status</th>
+//                 </tr>
+//                 </thead>
+
+//                 <tbody>
+//                 {shortageList.length > 0 ? shortageList.map((s, index) => (
+//                     <tr key={index}>
+//                         <td style={tdStyle}>{s.roll_number}</td>
+//                         <td style={tdStyle}><strong>{s.full_name}</strong></td>
+//                         <td style={tdStyle}>{s.subject}</td>
+//                         <td style={tdStyle}>{s.attended} / {s.total}</td>
+//                         <td style={{...tdStyle, fontWeight:'bold', color: parseFloat(s.percentage) < threshold ? '#D8000C' : 'green'}}>
+//                             {s.percentage}%
+//                         </td>
+//                         <td style={tdStyle}>
+//                             <span style={{
+//                                 backgroundColor: '#FFD2D2',
+//                                 color: '#D8000C',
+//                                 padding: '4px 8px',
+//                                 borderRadius: '4px',
+//                                 fontSize: '11px',
+//                                 fontWeight: 'bold'
+//                             }}>
+//                             SHORTAGE
+//                             </span>
+//                         </td>
+//                     </tr>
+//                 )) : (
+//                     <tr><td colSpan="6" style={{textAlign:'center', padding:'30px', color:'#999'}}>
+//                         No students found below {threshold}% attendance for the selected criteria.
+//                     </td></tr>
+//                 )}
+//                 </tbody>
+//             </table>
+//         </>
+//       )}
+//     </div>
+//   );
+// };
+
+// /* ================= STYLES ================= */
+
+// const filterContainer = {
+//     display: "flex", gap: "10px", background: "#f5f5f5", padding: "15px", borderRadius: "8px", alignItems: "center", marginBottom: "20px", flexWrap:'wrap', border:"1px solid #ddd"
+// };
+
+// const selectStyle = {
+//     padding: "8px", borderRadius: "4px", border: "1px solid #ccc", minWidth: "120px", fontSize:'13px'
+// };
+
+// const btnStyle = {
+//     padding: "8px 20px", background: "#AD3A3C", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontWeight: "bold", marginLeft: "auto"
+// };
+
+// const tableStyle = {
+//   width: "100%",
+//   borderCollapse: "collapse",
+//   marginTop: "10px",
+//   backgroundColor: "white",
+//   boxShadow: "0 1px 3px rgba(0,0,0,0.1)"
+// };
+
+// const thStyle = {
+//     background: "#eee", color: "#333", padding: "12px", borderBottom: "2px solid #ddd", textAlign: "left", fontSize:'13px'
+// };
+
+// const tdStyle = {
+//   padding: "12px",
+//   borderBottom: "1px solid #eee",
+//   color: "#555",
+//   fontSize: "13px"
+// };
+
+// export default AttendanceShortage;
+
+import { useState, useEffect } from "react";
+import api from "../utils/api";
 
 const AttendanceShortage = () => {
-  const [selectedClass, setSelectedClass] = useState(1);
+  // --- 1. Filter States ---
+  const [depts, setDepts] = useState([]);
+  const [batches, setBatches] = useState([]);
+  const [sections, setSections] = useState([]);
+  const [courses, setCourses] = useState([]); // Filtered list of courses for the selected class
+
+  // --- 2. Selection States ---
+  const [selectedDept, setSelectedDept] = useState("");
+  const [selectedBatch, setSelectedBatch] = useState("");
+  const [selectedSection, setSelectedSection] = useState("");
+  const [semester, setSemester] = useState("1"); // Added Semester
   const [selectedSubject, setSelectedSubject] = useState("ALL");
+  const [threshold, setThreshold] = useState(75);
 
-  const classes = [
-    { id: 1, name: "CSE-A" },
-    { id: 2, name: "CSE-B" },
-  ];
+  // --- 3. Data States ---
+  const [shortageList, setShortageList] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  const subjects = [
-    { code: "ALL", name: "All Subjects" },
-    { code: "CSE101", name: "Data Structures" },
-    { code: "CSE102", name: "Algorithms" },
-    { code: "CSE201", name: "Operating Systems" },
-  ];
+  // --- 4. Initial Fetches ---
+  useEffect(() => {
+    const loadBasics = async () => {
+        try {
+            const d = await api.get("/admin/depts");
+            setDepts(d.data);
+        } catch (e) { console.error(e); }
+    };
+    loadBasics();
+  }, []);
 
-  const shortageList = [
-    {
-      rollNo: "AM.SC.U5CSE24654",
-      name: "John Doe",
-      classId: 1,
-      subject: "CSE101",
-      attendance: 68,
-    },
-    {
-      rollNo: "AM.SC.U5CSE24660",
-      name: "Alice",
-      classId: 1,
-      subject: "CSE102",
-      attendance: 72,
-    },
-    {
-      rollNo: "AM.SC.U5CSE24675",
-      name: "Bob",
-      classId: 2,
-      subject: "CSE201",
-      attendance: 60,
-    },
-  ];
+  // --- 5. Cascading Dropdowns ---
+  useEffect(() => {
+    if (selectedDept) {
+      api.get("/admin/batches").then(res => {
+        setBatches(res.data.filter(b => b.dept_id === parseInt(selectedDept)));
+      });
+    } else setBatches([]);
+  }, [selectedDept]);
+
+  useEffect(() => {
+    if (selectedBatch) {
+      api.get("/admin/sections").then(res => {
+        setSections(res.data.filter(s => s.batch_id === parseInt(selectedBatch)));
+      });
+    } else setSections([]);
+  }, [selectedBatch]);
+
+  // --- 6. Fetch Courses relevant to the Class & Semester ---
+  useEffect(() => {
+    if (selectedSection && semester) {
+        // Fetch timetable to get distinct courses for this class
+        api.get(`/common/timetable-by-class?section_id=${selectedSection}&semester=${semester}`)
+           .then(res => {
+               // Extract unique courses from the timetable data
+               const uniqueCourses = [];
+               const map = new Map();
+               for (const item of res.data) {
+                   if(!map.has(item.course_code)){
+                       map.set(item.course_code, true);    // set any value to Map
+                       uniqueCourses.push({
+                           course_code: item.course_code,
+                           course_name: item.course_name
+                       });
+                   }
+               }
+               setCourses(uniqueCourses);
+               setSelectedSubject("ALL"); // Reset selection
+           })
+           .catch(err => {
+               console.error("Failed to load class courses", err);
+               setCourses([]);
+           });
+    } else {
+        setCourses([]);
+    }
+  }, [selectedSection, semester]);
+
+
+  // --- 7. Main Fetch Logic ---
+  const fetchShortageList = async () => {
+    if (!selectedSection || !semester) return alert("Please select section and semester");
+    
+    setLoading(true);
+    try {
+      const res = await api.get("/admin/attendance-report", {
+        params: {
+            section_id: selectedSection,
+            semester: semester, // Passed to backend (make sure backend handles it if needed)
+            course_code: selectedSubject,
+            threshold: threshold
+        }
+      });
+      setShortageList(res.data);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to fetch shortage list");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div>
       {/* FILTERS */}
-      <div style={{ display: "flex", gap: "20px", marginBottom: "25px" }}>
-        <div>
-          <label style={{ fontWeight: "bold" }}>Class: </label>
-          <select
-            value={selectedClass}
-            onChange={(e) => setSelectedClass(Number(e.target.value))}
-            style={selectStyle}
-          >
-            {classes.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+      <div style={filterContainer}>
+        <div style={{display:'flex', gap:'10px', flexWrap:'wrap', flex:1}}>
+            <select style={selectStyle} onChange={e => setSelectedDept(e.target.value)} value={selectedDept}>
+                <option value="">Select Dept</option>
+                {depts.map(d => <option key={d.id} value={d.id}>{d.dept_code}</option>)}
+            </select>
+
+            <select style={selectStyle} onChange={e => setSelectedBatch(e.target.value)} value={selectedBatch} disabled={!selectedDept}>
+                <option value="">Select Batch</option>
+                {batches.map(b => <option key={b.id} value={b.id}>{b.batch_name}</option>)}
+            </select>
+
+            <select style={selectStyle} onChange={e => setSelectedSection(e.target.value)} value={selectedSection} disabled={!selectedBatch}>
+                <option value="">Select Section</option>
+                {sections.map(s => <option key={s.id} value={s.id}>{s.section_name}</option>)}
+            </select>
+
+            {/* Added Semester */}
+            <select style={selectStyle} onChange={e => setSemester(e.target.value)} value={semester}>
+              {[1,2,3,4,5,6,7,8].map(n => <option key={n} value={n}>Sem {n}</option>)}
+            </select>
+
+            {/* Courses Dropdown (Filtered) */}
+            <select style={selectStyle} value={selectedSubject} onChange={(e) => setSelectedSubject(e.target.value)} disabled={courses.length === 0}>
+                <option value="ALL">All Subjects</option>
+                {courses.map((s) => (
+                    <option key={s.course_code} value={s.course_code}>{s.course_name}</option>
+                ))}
+            </select>
+
+            <div style={{display:'flex', alignItems:'center', background:'white', border:'1px solid #ccc', borderRadius:'4px', padding:'0 5px'}}>
+                <label style={{fontSize:'12px', fontWeight:'bold', paddingLeft:'5px'}}>Threshold % &lt; </label>
+                <input 
+                    type="number" 
+                    value={threshold} 
+                    onChange={e => setThreshold(e.target.value)} 
+                    style={{...selectStyle, border:'none', width:'50px'}}
+                />
+            </div>
         </div>
 
-        <div>
-          <label style={{ fontWeight: "bold" }}>Subject: </label>
-          <select
-            value={selectedSubject}
-            onChange={(e) => setSelectedSubject(e.target.value)}
-            style={selectStyle}
-          >
-            {subjects.map((s) => (
-              <option key={s.code} value={s.code}>
-                {s.name}
-              </option>
-            ))}
-          </select>
-        </div>
+        <button onClick={fetchShortageList} style={btnStyle}>Check Shortage</button>
       </div>
 
       {/* SHORTAGE TABLE */}
-      <table style={tableStyle}>
-        <thead>
-          <tr>
-            <th>Roll No</th>
-            <th>Student Name</th>
-            <th>Subject</th>
-            <th>Attendance %</th>
-            <th>Status</th>
-          </tr>
-        </thead>
+      {loading ? <p style={{textAlign:'center', marginTop:'30px'}}>Calculating attendance...</p> : (
+        <>
+            <table style={tableStyle}>
+                <thead>
+                <tr>
+                    <th style={thStyle}>Roll No</th>
+                    <th style={thStyle}>Student Name</th>
+                    <th style={thStyle}>Subject</th>
+                    <th style={thStyle}>Attended / Total</th>
+                    <th style={thStyle}>Percentage</th>
+                    <th style={thStyle}>Status</th>
+                </tr>
+                </thead>
 
-        <tbody>
-          {shortageList
-            .filter(
-              (s) =>
-                s.classId === selectedClass &&
-                (selectedSubject === "ALL" ||
-                  s.subject === selectedSubject)
-            )
-            .map((s, index) => (
-              <tr key={index}>
-                <td>{s.rollNo}</td>
-                <td>{s.name}</td>
-                <td>{s.subject}</td>
-                <td>{s.attendance}%</td>
-                <td style={{ color: "red", fontWeight: "bold" }}>
-                  Shortage
-                </td>
-              </tr>
-            ))}
-        </tbody>
-      </table>
+                <tbody>
+                {shortageList.length > 0 ? shortageList.map((s, index) => (
+                    <tr key={index}>
+                        <td style={tdStyle}>{s.roll_number}</td>
+                        <td style={tdStyle}><strong>{s.full_name}</strong></td>
+                        <td style={tdStyle}>{s.subject}</td>
+                        <td style={tdStyle}>{s.attended} / {s.total}</td>
+                        <td style={{...tdStyle, fontWeight:'bold', color: parseFloat(s.percentage) < threshold ? '#D8000C' : 'green'}}>
+                            {s.percentage}%
+                        </td>
+                        <td style={tdStyle}>
+                            <span style={{
+                                backgroundColor: '#FFD2D2',
+                                color: '#D8000C',
+                                padding: '4px 8px',
+                                borderRadius: '4px',
+                                fontSize: '11px',
+                                fontWeight: 'bold'
+                            }}>
+                            SHORTAGE
+                            </span>
+                        </td>
+                    </tr>
+                )) : (
+                    <tr><td colSpan="6" style={{textAlign:'center', padding:'30px', color:'#999'}}>
+                        No students found below {threshold}% attendance.
+                    </td></tr>
+                )}
+                </tbody>
+            </table>
+        </>
+      )}
     </div>
   );
 };
 
 /* ================= STYLES ================= */
 
+const filterContainer = {
+    display: "flex", gap: "10px", background: "#f5f5f5", padding: "15px", borderRadius: "8px", alignItems: "center", marginBottom: "20px", flexWrap:'wrap', border:"1px solid #ddd"
+};
+
 const selectStyle = {
-  padding: "6px 12px",
-  marginLeft: "8px",
+    padding: "8px", borderRadius: "4px", border: "1px solid #ccc", minWidth: "100px", fontSize:'13px'
+};
+
+const btnStyle = {
+    padding: "8px 20px", background: "#AD3A3C", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontWeight: "bold", marginLeft: "auto"
 };
 
 const tableStyle = {
   width: "100%",
   borderCollapse: "collapse",
+  marginTop: "10px",
+  backgroundColor: "white",
+  boxShadow: "0 1px 3px rgba(0,0,0,0.1)"
+};
+
+const thStyle = {
+    background: "#eee", color: "#333", padding: "12px", borderBottom: "2px solid #ddd", textAlign: "left", fontSize:'13px'
+};
+
+const tdStyle = {
+  padding: "12px",
+  borderBottom: "1px solid #eee",
+  color: "#555",
+  fontSize: "13px"
 };
 
 export default AttendanceShortage;
