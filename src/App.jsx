@@ -10,7 +10,7 @@ import Cr from './components/Attendance.jsx';
 import AttendanceReport from './pages/Faculty/AttendanceReport.jsx';
 import MainLayout from './components/MainLayout.jsx';
 import Login from './pages/Login/Login.jsx';
-
+import Dashboard from './pages/dashboard/dashboard/dashboard.js';
 // --- ROLE-BASED PROTECTOR COMPONENT ---
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, isAuthenticated } = useAuth();
@@ -36,6 +36,10 @@ function App() {
           <Routes>
             {/* PUBLIC ROUTE */}
             <Route path="/" element={<Login />} />
+            <Route 
+              path="/dashboard" 
+              element={<AdminDashboard />}
+            />
 
             {/* CR ROUTES */}
             <Route 
