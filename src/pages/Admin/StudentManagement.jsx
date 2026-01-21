@@ -21,7 +21,6 @@ const StudentManagement = () => {
 
   // Bulk Upload States
   const [showBulkUpload, setShowBulkUpload] = useState(false);
-  const [bulkFile, setBulkFile] = useState(null);
   const [bulkData, setBulkData] = useState([]);
   const [uploading, setUploading] = useState(false);
 
@@ -139,7 +138,6 @@ const StudentManagement = () => {
     const file = e.target.files[0];
     if (!file) return;
     
-    setBulkFile(file);
     const reader = new FileReader();
     
     reader.onload = (evt) => {
@@ -172,33 +170,27 @@ const StudentManagement = () => {
     }
 
     setUploading(true);
-    let successCount = 0;
-    let errorCount = 0;
-    const errors = [];
 
-    for (const student of bulkData) {
-      try {
-        await api.post("/admin/students", {
-          roll: student.roll,
-          name: student.name,
-          email: student.email,
-          section_id: selectedSection
-        });
-        successCount++;
-      } catch (e) {
-        errorCount++;
-        errors.push(`${student.roll}: ${e.response?.data?.error || e.message}`);
-      }
-    }
+    try {
+      const studentsToUpload = bulkData.map(student => ({
+        roll: student.roll,
+        name: student.name,
+        email: student.email,
+        section_id: selectedSection
+      }));
 
-    setUploading(false);
-    alert(`Students Created: ${successCount}\nFailed: ${errorCount}${errors.length > 0 ? '\n\nErrors:\n' + errors.slice(0, 5).join('\n') + (errors.length > 5 ? '\n...' : '') : ''}`);
-    
-    if (successCount > 0) {
+      const response = await api.post("/admin/student-bulk-upload", {
+        students: studentsToUpload
+      });
+
+      alert(response.data.message || `${bulkData.length} students created successfully`);
       fetchStudents();
       setShowBulkUpload(false);
-      setBulkFile(null);
       setBulkData([]);
+    } catch (e) {
+      alert("Bulk Upload Error: " + (e.response?.data?.error || e.message));
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -263,39 +255,12 @@ const StudentManagement = () => {
               <div style={{...formBox, border:'2px solid #AD3A3C', marginBottom:'20px'}}>
                 <h4 style={{margin:'0 0 15px', color:'#AD3A3C'}}>Bulk Upload Students</h4>
                 
-
                 <input 
                   type="file" 
                   accept=".xlsx,.xls" 
                   onChange={handleFileUpload}
                   style={{marginBottom:'15px', padding:'8px', border:'1px solid #ddd', borderRadius:'4px', width:'100%'}}
                 />
-                
-                {bulkData.length > 0 && (
-                  <div style={{background:'white', padding:'15px', borderRadius:'4px', marginBottom:'15px', border:'1px solid #ddd'}}>
-                    <p style={{margin:'0 0 10px', fontWeight:'bold'}}>Preview ({bulkData.length} students)</p>
-                    <div style={{maxHeight:'300px', overflow:'auto'}}>
-                      <table style={{...tableStyle, fontSize:'11px'}}>
-                        <thead>
-                          <tr>
-                            <th style={thStyle}>Roll Number</th>
-                            <th style={thStyle}>Name</th>
-                            <th style={thStyle}>Email</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {bulkData.map((row, idx) => (
-                            <tr key={idx}>
-                              <td style={tdStyle}>{row.roll}</td>
-                              <td style={tdStyle}>{row.name}</td>
-                              <td style={tdStyle}>{row.email}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                )}
                 
                 <button 
                   onClick={handleBulkUpload} 

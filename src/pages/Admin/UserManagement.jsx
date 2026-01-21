@@ -39,7 +39,6 @@ const FacultyDirectory = () => {
   const [showForm, setShowForm] = useState(false);
   const [showBulkUpload, setShowBulkUpload] = useState(false);
   const [profileForm, setProfileForm] = useState({ name: "", email: "", dept: "", auth_key: "" });
-  const [bulkFile, setBulkFile] = useState(null);
   const [bulkData, setBulkData] = useState([]);
   const [uploading, setUploading] = useState(false);
 
@@ -71,7 +70,6 @@ const FacultyDirectory = () => {
     const file = e.target.files[0];
     if (!file) return;
     
-    setBulkFile(file);
     const reader = new FileReader();
     
     reader.onload = (evt) => {
@@ -100,45 +98,40 @@ const FacultyDirectory = () => {
     }
 
     setUploading(true);
-    let successCount = 0;
-    let errorCount = 0;
-    const errors = [];
-
-    for (const faculty of bulkData) {
-      try {
-        
+    
+    try {
+      const profilesWithDeptId = bulkData.map(faculty => {
         const deptMatch = depts.find(d => 
           d.dept_code?.toUpperCase() === faculty.dept?.toUpperCase() ||
           d.dept_name?.toUpperCase() === faculty.dept?.toUpperCase()
         );
 
         if (!deptMatch) {
-          errorCount++;
-          errors.push(`${faculty.email}: Department '${faculty.dept}' not found`);
-          continue;
+          throw new Error(`Department '${faculty.dept}' not found for ${faculty.email}`);
         }
 
-        await api.post("/admin/faculty-profile", {
+        return {
           name: faculty.name,
           email: faculty.email,
           dept_id: deptMatch.id,
           auth_key: faculty.auth_key
-        });
-        successCount++;
-      } catch (e) {
-        errorCount++;
-        errors.push(`${faculty.email}: ${e.response?.data?.error || e.message}`);
-      }
-    }
+        };
+      });
 
-    setUploading(false);
-    alert(`Profiles Created: ${successCount}\nFailed: ${errorCount}${errors.length > 0 ? '\n\nErrors:\n' + errors.slice(0, 5).join('\n') + (errors.length > 5 ? '\n...' : '') : ''}\n\n`);
-    
-    if (successCount > 0) {
-      fetchData();
+      await api.post("/admin/faculty-bulk-upload", {
+        profiles: profilesWithDeptId
+      });
+
+      alert(`Success! ${bulkData.length} Faculty Profiles Created!`);
+      
       setShowBulkUpload(false);
-      setBulkFile(null);
       setBulkData([]);
+      fetchData();
+      
+    } catch (e) {
+      alert("Error: " + (e.response?.data?.error || e.message));
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -172,41 +165,12 @@ const FacultyDirectory = () => {
         <div style={{...formContainer, border:'2px solid #AD3A3C'}}>
           <h4 style={{margin:'0 0 15px'}}>Upload Faculty Profiles</h4>
           
-
           <input 
             type="file" 
             accept=".xlsx,.xls" 
             onChange={handleFileUpload}
             style={{marginBottom:'15px', padding:'8px', border:'1px solid #ddd', borderRadius:'4px', width:'100%'}}
           />
-          
-          {bulkData.length > 0 && (
-            <div style={{background:'white', padding:'15px', borderRadius:'4px', marginBottom:'15px', border:'1px solid #ddd'}}>
-              <p style={{margin:'0 0 10px', fontWeight:'bold'}}>Preview ({bulkData.length} profiles)</p>
-              <div style={{maxHeight:'200px', overflow:'auto'}}>
-                <table style={{...tableStyle, fontSize:'11px'}}>
-                  <thead>
-                    <tr>
-                      <th style={thStyle}>Name</th>
-                      <th style={thStyle}>Email</th>
-                      <th style={thStyle}>Dept</th>
-                      <th style={thStyle}>Auth Key</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {bulkData.map((row, idx) => (
-                      <tr key={idx}>
-                        <td style={tdStyle}>{row.name}</td>
-                        <td style={tdStyle}>{row.email}</td>
-                        <td style={tdStyle}>{row.dept}</td>
-                        <td style={tdStyle}>{row.auth_key}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
           
           <button 
             onClick={handleBulkUpload} 
@@ -316,7 +280,7 @@ const StudentCRSection = () => {
       if (!selectedSection) return alert("Select a section");
       setLoading(true);
       try {
-        // NOW SENDING SEMESTER PARAMETER
+        // NOW SENDING SEMESTER PARAMETER    
         const res = await api.get(`/admin/students-by-filter`, { 
           params: { 
               section_id: selectedSection, 
