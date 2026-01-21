@@ -42,6 +42,7 @@ const FacultyDirectory = () => {
   const [bulkData, setBulkData] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [bulkDeptId, setBulkDeptId] = useState("");
+  const [selectedDept, setSelectedDept] = useState(""); // For filtering the table
 
   useEffect(() => { fetchData(); }, []);
 
@@ -143,6 +144,11 @@ const FacultyDirectory = () => {
     XLSX.writeFile(wb, "faculty_profiles_template.xlsx");
   };
 
+  // Filter faculty list based on selected department
+  const filteredFacultyList = selectedDept 
+    ? facultyList.filter(f => f.dept_id === parseInt(selectedDept))
+    : facultyList;
+
   return (
     <>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom:'20px' }}>
@@ -202,10 +208,44 @@ const FacultyDirectory = () => {
         </div>
       )}
 
-      <table style={tableStyle}>
-        <thead><tr><th style={thStyle}>Name</th><th style={thStyle}>Email</th><th style={thStyle}>Dept</th><th style={thStyle}>Auth Key</th></tr></thead>
-        <tbody>{facultyList.map(f=>(<tr key={f.profile_id}><td style={tdStyle}><strong>{f.faculty_name}</strong></td><td style={tdStyle}>{f.email}</td><td style={tdStyle}>{f.dept_code}</td><td style={tdStyle}>{f.authorization_key}</td></tr>))}</tbody>
-      </table>
+      {/* FILTER HEADER */}
+      <div style={filterContainer}>
+        <div style={{flex:1}}>
+            <label style={labelStyle}>Department</label>
+            <select style={selectStyle} onChange={e => setSelectedDept(e.target.value)} value={selectedDept}>
+                <option value="">Select Dept</option>
+                {depts.map(d=><option key={d.id} value={d.id}>{d.dept_code}</option>)}
+            </select>
+        </div>
+      </div>
+
+      {selectedDept ? (
+        <table style={tableStyle}>
+          <thead><tr><th style={thStyle}>Name</th><th style={thStyle}>Email</th><th style={thStyle}>Dept</th><th style={thStyle}>Auth Key</th></tr></thead>
+          <tbody>
+            {filteredFacultyList.length > 0 ? (
+              filteredFacultyList.map(f=>(
+                <tr key={f.profile_id}>
+                  <td style={tdStyle}><strong>{f.faculty_name}</strong></td>
+                  <td style={tdStyle}>{f.email}</td>
+                  <td style={tdStyle}>{f.dept_code}</td>
+                  <td style={tdStyle}>{f.authorization_key}</td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="4" style={{...tdStyle, textAlign:'center', color:'#999', padding:'20px'}}>
+                  No faculty found for this department.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      ) : (
+        <div style={{textAlign:'center', padding:'50px', color:'#999', background:'#f9f9f9', borderRadius:'8px', marginTop:'20px'}}>
+            Please select a Department to view faculty profiles.
+        </div>
+      )}
     </>
   );
 };
@@ -382,10 +422,10 @@ const tabBtn = (active) => ({ padding: "10px 15px", border: "none", borderBottom
 const formContainer = { backgroundColor: "#f9f9f9", padding: "20px", borderRadius: "8px", marginBottom: "20px", border: "1px solid #eee" };
 const labelStyle = { display:'block', fontSize:'12px', fontWeight:'bold', color:'#555', marginBottom:'5px'};
 const inputStyle = { width:'100%', padding: "8px", border: "1px solid #ccc", borderRadius: "4px", fontSize: "14px", boxSizing:'border-box' };
+const selectStyle = { width:'100%', padding: "8px", borderRadius: "4px", border: "1px solid #ccc" };
 const primaryBtn = { padding: "8px 15px", backgroundColor: "#AD3A3C", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontWeight: "bold", fontSize:"13px" };
 const actionBtn = { padding: "5px 10px", background: "#333", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontSize:"11px" };
-const filterContainer = { display: "flex", gap: "10px", background: "#f5f5f5", padding: "15px", borderRadius: "8px", alignItems: "center", marginBottom:'20px', flexWrap:'wrap' };
-const selectStyle = { padding: "8px", borderRadius: "4px", border: "1px solid #ccc", flex: 1, minWidth:'100px' };
+const filterContainer = { display: "flex", gap: "20px", background: "#eee", padding: "15px", borderRadius: "8px", marginBottom: "20px" };
 const btnStyle = { padding: "8px 20px", background: "#333", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" };
 const tableStyle = { width: "100%", borderCollapse: "collapse", marginTop: "15px", backgroundColor:'white' };
 const thStyle = { textAlign: "left", padding: "10px", background: "#eee", borderBottom: "2px solid #ddd", color:'#333', fontSize:'13px' };
